@@ -40,6 +40,28 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// Get one post (detailed)
+// eslint-disable-next-line no-unused-vars
+router.get('/:id', async (req, res) => {
+  try {
+    const foundPost = await Post.findOne({ _id: req.params.id });
+    const postData = {
+      _id: foundPost._id,
+      title: foundPost.title,
+      body: foundPost.body,
+      upvotes_clap: foundPost.upvotes_clap,
+      upvotes_laugh: foundPost.upvotes_laugh,
+      upvotes_sad: foundPost.upvotes_sad,
+      date_created: foundPost.createdAt,
+      comments: await Comment.find({ _id: { $in: [foundPost.comment_id] } }),
+    };
+
+    res.send(postData);
+  } catch (err) {
+    res.status(404).json({ message: err.message });
+  }
+});
+
 // Deleting one post
 // eslint-disable-next-line no-unused-vars
 router.delete('/:id', async (req, res) => {
@@ -70,4 +92,38 @@ router.post('/:id/comment', async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
+=======
+// Upvote a post
+router.put('/:id/upvote', async (req, res) => {
+  const currentPost = await Post.findById(req.body.id);
+
+  try {
+    if (req.body.upvote_type === 'clap') {
+      const claps = currentPost.upvotes_clap;
+      await Post.updateOne(
+        { _id: req.body.id },
+        { upvotes_clap: claps + (req.body.upvote === true ? 1 : -1) },
+      );
+    } else if (req.body.upvote_type === 'laugh') {
+      const laughs = currentPost.upvotes_laugh;
+      await Post.update(
+        { _id: req.body.id },
+        { upvotes_laugh: laughs + (req.body.upvote === true ? 1 : -1) },
+      );
+    } else if (req.body.upvote_type === 'sad') {
+      const sads = currentPost.upvotes_sad;
+      await Post.update(
+        { _id: req.body.id },
+        { upvotes_sad: sads + (req.body.upvote === true ? 1 : -1) },
+      );
+    } else res.status(400).json({ message: 'Invalid upvote type' });
+
+    res.status(200).send();
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+>>>>>>> a4987e086b8c9bfb8dac53528963414c4535f0c6
 module.exports = router;

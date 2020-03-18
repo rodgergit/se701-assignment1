@@ -1,38 +1,63 @@
-import React from 'react';
+/* eslint-disable no-unused-vars */
+import React, { useState } from 'react';
 import { Container } from '@material-ui/core';
 import PostDetail from './PostDetail';
 import Comment from './Comment';
 import CreateCommentModal from './CreateCommentModal';
+import withCreateCommentService from './withCreateCommentService';
+import Header from '../../common/Header/Header';
 
 function formatDate(date) {
   const newDate = new Date(date);
   return newDate.toDateString();
 }
 
-function nestComments(commentList) {
-  return commentList.map(comment => {
-    return (
-      <Container>
-        <Comment body={comment.body} dateCreated={formatDate(comment.date_created)} />
-        {nestComments(comment.children)}
-      </Container>
-    );
-  });
+function nestComments(commentList, setModal) {
+  return commentList.map(comment => (
+    <Container key={`${comment.id}-container-key`}>
+      <Comment
+        body={comment.body}
+        dateCreated={formatDate(comment.date_created)}
+        setModal={() => {
+          setModal(true);
+        }}
+        key={`${comment.id}-key`}
+      />
+      {nestComments(comment.children, setModal)}
+    </Container>
+  ));
 }
 
-const PostDetailPage = ({ commentsToDisplay }) => {
+const CreateCommentModalService = withCreateCommentService(CreateCommentModal);
+
+const PostDetailPage = ({
+  postToDisplay,
+  commentsToDisplay,
+  postsToDisplay,
+  handleSearch,
+  handleVote,
+}) => {
+  const [showModal, setModal] = useState(false);
+
   return (
     <div>
-      <PostDetail />
-      {commentsToDisplay.map(comment => {
-        return (
-          <Container maxWidth="sm">
-            <Comment body={comment.body} dateCreated={formatDate(comment.date_created)} />
-            {nestComments(comment.children)}
-          </Container>
-        );
-      })}
-      <CreateCommentModal />
+      <Header postsToDisplay={postsToDisplay} handleSearch={handleSearch} />
+
+      <PostDetail postToDisplay={postToDisplay} handleVote={handleVote} />
+      {commentsToDisplay.map(comment => (
+        <Container maxWidth="sm" key={`${comment.id}-container-key`}>
+          <Comment
+            body={comment.body}
+            dateCreated={formatDate(comment.date_created)}
+            setModal={() => {
+              setModal(true);
+            }}
+            key={`${comment.id}-key`}
+          />
+          {nestComments(comment.children, setModal)}
+        </Container>
+      ))}
+      <CreateCommentModalService showModal={showModal} setModal={setModal} />
     </div>
   );
 };
